@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import com.cedric.site_auteur_api.dto.user.UserCreateDto;
 import com.cedric.site_auteur_api.dto.user.UserDto;
 import com.cedric.site_auteur_api.dto.user.UserUpdateDto;
+import com.cedric.site_auteur_api.dto.user.UserFullDto;
+
 import com.cedric.site_auteur_api.entity.User;
 import com.cedric.site_auteur_api.mapper.UserMapper;
 import com.cedric.site_auteur_api.repository.UserRepository;
@@ -25,22 +27,22 @@ public class UserService {
     }
 
     //All
-    public List<UserDto> getAllUsers() {
+    public List<UserFullDto> getAllUsers() {
         return userRepository.findAll()
             .stream()
-            .map(UserMapper::toDto)
+            .map(UserMapper::toFullDto)
             .toList();
     }
     // by id
-    public UserDto getUserById(Integer id) {
+    public UserFullDto getUserById(Integer id) {
         User user = userRepository.findById(id)
             .orElseThrow(()-> new NoSuchElementException("Utilisateur non trouvable avecl 'id : " + id));
 
-        return UserMapper.toDto(user);
+        return UserMapper.toFullDto(user);
     }
 
     // Create
-    public UserDto createUser(UserCreateDto dto) {
+    public UserFullDto createUser(UserCreateDto dto) {
         User user = new User();
 
         user.setUsername(dto.username());
@@ -52,11 +54,11 @@ public class UserService {
 
         User saved = userRepository.save(user);
 
-        return UserMapper.toDto(saved);
+        return UserMapper.toFullDto(saved);
     }
 
     //Update
-    public UserDto updateUser(Integer id,UserUpdateDto dto) {
+    public UserFullDto updateUser(Integer id,UserUpdateDto dto) {
         User user = userRepository.findById(id)
             .orElseThrow(()-> new NoSuchElementException("Utilisateur introuvable avec l'id : " + id));
         
@@ -66,7 +68,7 @@ public class UserService {
 
         User updated = userRepository.save(user);
 
-        return UserMapper.toDto(updated);
+        return UserMapper.toFullDto(updated);
     }
 
     //Delete
@@ -78,7 +80,7 @@ public class UserService {
     }
 
     //Toggle status
-    public UserDto toggleUser(Integer id) {
+    public UserFullDto toggleUser(Integer id) {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new NoSuchElementException("Utilisateur introuvable avec l'id : " + id));
 
@@ -87,6 +89,6 @@ public class UserService {
 
         User updated = userRepository.save(user);
 
-        return UserMapper.toDto(updated);
+        return UserMapper.toFullDto(updated);
     }
 }

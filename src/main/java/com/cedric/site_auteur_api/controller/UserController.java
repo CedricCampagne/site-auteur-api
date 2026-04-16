@@ -2,6 +2,7 @@ package com.cedric.site_auteur_api.controller;
 
 import com.cedric.site_auteur_api.dto.user.UserCreateDto;
 import com.cedric.site_auteur_api.dto.user.UserDto;
+import com.cedric.site_auteur_api.dto.user.UserFullDto;
 import com.cedric.site_auteur_api.dto.user.UserUpdateDto;
 import com.cedric.site_auteur_api.service.UserService;
 
@@ -30,22 +31,22 @@ public class UserController {
     }
 
     @GetMapping
-    public List<UserDto> getAllUsers() {
+    public List<UserFullDto> getAllUsers() {
         return userService.getAllUsers();
     }
 
     @GetMapping("/{id}")
-    public UserDto getUserById(@PathVariable Integer id) {
+    public UserFullDto getUserById(@PathVariable Integer id) {
         return userService.getUserById(id);
     }
 
     @PostMapping
-    public UserDto createUser(@RequestBody UserCreateDto dto) {
+    public UserFullDto createUser(@RequestBody UserCreateDto dto) {
         return userService.createUser(dto);
     }
 
     @PutMapping("/{id}")
-    public UserDto updateUser(
+    public UserFullDto updateUser(
         @RequestBody UserUpdateDto dto,
         @PathVariable Integer id){
             return userService.updateUser(id, dto);
@@ -57,7 +58,7 @@ public class UserController {
     }
 
     @PatchMapping("/{id}/toggle")
-    public UserDto toggleUserStatus(@PathVariable Integer id) {
+    public UserFullDto toggleUserStatus(@PathVariable Integer id) {
         return userService.toggleUser(id);
     }
 

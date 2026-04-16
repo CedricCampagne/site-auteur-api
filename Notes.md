@@ -1227,3 +1227,21 @@ Hibernate le fait automatiquement.
 | `@MapsId("roleId")`| Lie la relation `Role` à la clé composite     |
 | `@JoinColumn`      | Nom des colonnes de clé étrangère (FK)        |
 | `UserRole`         | Table pivot Many‑to‑Many maîtrisée            |
+
+
+## Tips projet springboot bdd :
+
+Conventions de nommage Spring Boot (Java → SQL)
+
+
+| Champ Java (camelCase) | Colonne SQL (snake_case) |
+|-------------------------|---------------------------|
+| `roleName`              | `role_name`              |
+| `createdAt`             | `created_at`             |
+| `updatedAt`             | `updated_at`             |
+| `isActive`              | `is_active`              |
+| `userId`                | `user_id`                |
+| `emailAddress`          | `email_address`          |
+| `firstName`             | `first_name`             |
+| `lastName`              | `last_name`              |
+| `profileImageUrl`       | `profile_image_url`      |
