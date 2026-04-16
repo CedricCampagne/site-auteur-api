@@ -1,7 +1,9 @@
 package com.cedric.site_auteur_api.service;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.cedric.site_auteur_api.dto.auth.RegisterDto;
 import com.cedric.site_auteur_api.dto.user.UserCreateDto;
 import com.cedric.site_auteur_api.dto.user.UserDto;
 import com.cedric.site_auteur_api.dto.user.UserUpdateDto;
@@ -20,10 +22,14 @@ public class UserService {
     
     //injecte le repository
     private final UserRepository userRepository;
-
+    // injecte encoder
+    private final PasswordEncoder passwordEncoder;
     //Constructeur
-    public UserService(UserRepository userRepository) {
+    public UserService(
+        UserRepository userRepository,
+        PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     //All
@@ -90,5 +96,24 @@ public class UserService {
         User updated = userRepository.save(user);
 
         return UserMapper.toFullDto(updated);
+    }
+
+    // Register
+    public UserFullDto register (RegisterDto dto) {
+        if (userRepository.existsByEmail(dto.email())) {
+            throw new RuntimeException("Email déjà utilisé");
+        }
+
+        User user = new User();
+        user.setUsername(dto.username());
+        user.setEmail(dto.email());
+        user.setPassword(passwordEncoder.encode(dto.password()));
+        user.setIsActive(true);
+        user.setCreatedAt(OffsetDateTime.now());
+        user.setUpdatedAt(OffsetDateTime.now());
+
+        User saved = userRepository.save(user);
+
+        return UserMapper.toFullDto(saved);
     }
 }
