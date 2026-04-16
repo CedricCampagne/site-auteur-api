@@ -269,7 +269,9 @@ import java.time.ZonedDateTime;
 
         @Getter
         @Setter
+        //@NoArgsConstructor JPA/Hibernate a besoin d’un constructeur vide pour créer les entités depuis la base de données.
         @NoArgsConstructor
+        //@AllArgsConstructor inutile dans 90% des cas peu devenir lourd, peu lisible
         @AllArgsConstructor
         @Entity
         @Table(name = "book")
@@ -732,3 +734,496 @@ Ici on gère **toutes les autres exceptions** qui ne sont pas ``NoSuchElementExc
     - Status : 500
     - Error : ``"Internal Server Error"``
     - Message : ``ex.getMessage()`` (souvent technique)
+
+
+## DTO (Data Transfer Object)
+
+objet spécialement conçu pour **transporter des données entre** :
+- le backend Spring Boot
+- le frontend (SvelteKit, React, Angular…)
+- ou un autre service (API externe)
+
+Il **ne représente pas la base de données**, contrairement à une entité JPA.
+Il **représente ce que tu veux exposer publiquement**.
+
+- Pourquoi utiliser un DTO :
+    - Sécurité
+        On évite d’exposer des champs sensibles ou internes de ton entité JPA.  
+        - Exemple :
+            - password
+            - createdAt
+            - updatedAt
+            - relations JPA internes
+
+        Avec un DTO, on choisis exactement ce qu'on expose.
+
+    - Stabilité de l’API
+
+        L'entité JPA peut changer (ajout de colonnes, relations, refactor…),
+        mais ton API publique ne doit pas casser.
+
+        Le DTO te permet de garder une API stable même si ton modèle interne évolue.
+    
+    - Éviter les problèmes de sérialisation
+
+        A voir...
+
+    - Adapter les données pour le front
+        On peut :
+        - formater les dates
+        - renommer des champs
+        - combiner plusieurs champs
+        - cacher des infos
+        - ajouter des infos calculées
+
+        Bref, on maîtrise le contrat d’API.
+
+- Utiliser un DTO en spring Boot :
+
+    1. Création DTO
+
+    Objet simple sans logique metiér, avec les champs que l'on veut exposer.
+    
+    ```java
+    public class BookDto {
+        private Integer idBook;
+        private String title;
+        private String slug;
+        private String author;
+        private String summary;
+        private String excerpt;
+        private ZonedDateTime publishedAt;
+        private String publisher;
+        private String genre;
+        private String coverUrl;
+        private Boolean isActive;
+    }
+    ```
+
+    - plusieurs facon de faire selon le besoin :
+        - DTO de réponse (ce que tu renvoies au front)
+
+            La meilleure pratique moderne : utiliser des record
+            - immuables : parfait pour une réponse JSON
+            - compacts : pas de getters/setters à écrire
+            - lisibles
+            - adaptés à la sérialisation JSON
+            - impossible de modifier les données après création : sécurité
+        
+        - DTO de création (POST) et mise à jour (PUT/PATCH)
+
+            La meilleure pratique : utiliser Lombok (évite d’écrire 200 lignes de getters/setterstrès utilisé en entreprise lisible rapide à maintenir)
+            Parce que pour créer ou modifier un objet, on a besoin :
+            - de setters
+            - ou d’un constructeur flexible
+            - ou d’un builder
+
+            Les records sont immuables : pas pratiques pour recevoir des données du front.
+
+        - DTO classiques (getters/setters écrits à la main)
+
+            C’est la version “ancienne école” :
+            - c’est verbeux
+            - ça fait beaucoup de code inutile
+            - Lombok ou les records font mieux
+
+            C’est encore utilisé dans certains projets, mais ce n’est pas la meilleure pratique moderne.
+
+    - Résumé rapide : 
+
+        - DTO de réponse → record :
+            simple, immuable, parfait pour exposer des données
+
+        - DTO de création/mise à jour → Lombok :
+            setters nécessaires, code propre, facile à maintenir
+
+        - DTO classiques : à éviter sauf contrainte particulièr
+    
+    2. Création d'un Mapper
+
+    - Le mapper convertit :
+        - Book → BookDto
+        - (plus tard) BookDto → Book
+        - centralise la transformation : propre, maintenable.
+
+        ```java
+        public class BookMapper {
+        // BookDto = type de retour Book book entité a convertir type Book nom book
+            public static BookDto toDto(Book book) {
+                BookDto dto = new BookDto();
+                dto.setIdBook(book.getIdBook());
+                dto.setTitle(book.getTitle());
+                dto.setSlug(book.getSlug());
+                dto.setAuthor(book.getAuthor());
+                dto.setSummary(book.getSummary());
+                dto.setExcerpt(book.getExcerpt());
+                dto.setPublishedAt(book.getPublishedAt());
+                dto.setPublisher(book.getPublisher());
+                dto.setGenre(book.getGenre());
+                dto.setCoverUrl(book.getCoverUrl());
+                dto.setIsActive(book.getIsActive());
+                return dto;
+            }
+        }
+        ```
+        Si record :
+        
+        ```java
+        return  new BookDto(
+            book.getIdBook(),
+            book.getTitle(),
+            book.getSlug(),
+            book.getAuthor(),
+            book.getSummary(),
+            book.getExcerpt(),
+            book.getPublishedAt(),
+            book.getPublisher(),
+            book.getGenre(),
+            book.getCoverUrl(),
+            book.getIsActive()
+        );
+        ```
+  
+        3. Utilisation dans un service
+
+        Le service renvoie toujours un DTO, jamais une entité.
+
+        ```java
+        public BookDto getBookBySlug(String slug) {
+            Book book = bookRepository.findBySlug(slug);
+            if (book == null) {
+                throw new NoSuchElementException("Livre non trouvé avec le slug : " + slug);
+            }
+            return BookMapper.toDto(book);
+        }
+        ```
+
+        - Résumé ultra simple
+            - Tu reçois un slug  
+            - On cherche l’entité Book en base  
+            - Si pas trouvé : exception : 404  
+            - Si trouvé : tu convertis Book : BookDto  
+            - On renvoie le DTO au controller
+
+            C’est exactement la structure d’un service propre en Spring Boot.
+
+        4. le controller renvoie le DTO
+
+        Le front reçoit un JSON propre, stable, maîtrisé.
+
+        ```java
+        @GetMapping("/books/{slug}")
+        public BookDto getBook(@PathVariable String slug) {
+            return bookService.getBookBySlug(slug);
+        }
+        ```
+
+        - Résumé simple DTO :
+            - Un DTO est un objet conçu pour exposer proprement les données de ton API.
+            - Il protège ton entité JPA, stabilise ton API, évite les problèmes de sérialisation et te permet de formater les données pour ton front.
+            - Le mapper convertit l’entité en DTO.
+            - Le service renvoie des DTO.
+            - Le controller expose uniquement des DTO.
+
+
+## stream => map => collect
+
+le service doit renvoyer une ``List<BookDto>`` now plus ``List<Book>``(entité JPA)  
+On doit donc convertir le retour du repository qui lui retourne forcement ``List<Book>``(entité JPA).
+
+- books.stream() : transforme la liste en flux
+- .map(BookMapper::toDto) : convertit chaque Book en BookDto
+- .toList() : reconstitue une liste
+
+Résultat final : ``List<Book>`` en ``List<BookDto>``
+
+```java
+return books.stream()
+        .map(BookMapper::toDto)
+        // java 16+ moderne list non modifiable
+        .toList();
+        // ancien liste modifiable
+        .collect(Collectors.toList());
+```
+
+
+- Résumé ultra simple
+    - Le repository renvoie ``List<Book>``
+    - L'API doit renvoyer L``ist<BookDto>``
+    - Donc le service doit convertir ``List<Book>`` => ``List<BookDto>`` avec stream + map + collect/toList().
+
+
+### ``.stream()`` : transformer une liste en “flux”
+
+Un Stream permet d’appliquer des opérations une par une sur chaque élément.
+
+C’est juste une autre façon de parcourir une liste, mais plus puissante.
+
+Ici exemple :
+
+```java
+books.stream()
+```
+
+Book → Book → Book → Book
+
+### ``.map()`` : transformer chaque élément
+
+Pour chaque élément du stream, applique cette fonction et remplace-le par le résultat.
+
+Ici exemple :
+
+```java
+.map(BookMapper::toDto)
+
+```
+
+- prends un ``Book``
+- applique ``BookMapper.toDto(book)``
+- renvoie un ``BookDto``
+
+Book → BookDto  
+Book → BookDto  
+Book → BookDto  
+
+
+**``map()`` = transformer chaque élément du flux.**
+
+### ``.collect()`` : reconstruire une liste
+
+Après avoir transformé chaque élément, on veut récupérer une nouvelle liste.
+
+```java
+.collect(Collectors.toList());
+```
+
+Prends tous les éléments transformés et remets-les dans une liste => List<BookDto>
+
+**``collect()`` = reconstruire une collection à partir du stream.**
+
+
+## Les relations entre des entités
+
+exemple entité Chronicle : 
+- 1 Chronicle → plusieurs Comments
+- relation OneToMany
+
+```java
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import java.util.List;
+
+@OneToMany(mappedBy = "chronicle", cascade = CascadeType.ALL)
+@JsonManagedReference("chronicle-comments")
+private List<Comment> comments;
+```
+
+- ``@OneToMany``
+    - 1 Chronicle → N Comments
+
+- ``mappedBy = "chronicle"``
+    - la relation est définie dans l'entité Comment" cle étrangère dans comment
+    - Dans Comment on doit avoir :
+
+    ```java
+    @ManyToOne
+    @JoinColumn(name = "chronicle_id")
+    private Chronicle chronicle;
+    ```
+
+- ``cascade = CascadeType.ALL``
+    - si on supprime un Chronicle : supprime ses Comments
+    - si on crée : peut créer les enfants aussi
+
+- ``@JsonManagedReference("nom de la relation)``
+    - évite boucle infinie JSON :
+    - Chronicle → Comment → Chronicle → ...
+
+- L’autre côté (Comment)
+    - On doit créer / adapter ton entity Comment :
+
+    ```java
+    @ManyToOne
+    @JoinColumn(name = "chronicle_id")
+    @JsonBackReference("chronicle-comments")
+    private Chronicle chronicle;
+    ```
+
+- ATTENTION (très important)
+    - Sans ça :
+        ``@JsonManagedReference``
+        ``@JsonBackReference``
+
+    L'API va crash avec : ``StackOverflowError`` (boucle infinie)
+
+## Clé Composite (table de liaison)
+
+Dans ``/entity`` création de ``UserRoleId.java``
+
+1. Pourquoi une classe UserRoleId ?
+
+Dans une table de liaison Many‑to‑Many (ex : user_role)  
+la clé primaire n’est pas un simple id.
+
+Elle est composée de :
+- user_id
+- role_id
+
+Donc la clé primaire = (user_id + role_id).  
+
+JPA ne peut pas gérer ça avec un simple @Id.  
+Il faut une clé composite, représentée par une classe annotée :
+
+```java
+@Embeddable
+public class UserRoleId implements Serializable { ... }
+```
+
+Cette classe n’est pas une table, c’est juste un objet qui représente la clé.
+
+2. Pourquoi ``implements Serializable`` ?
+
+Parce que JPA doit pouvoir :
+- stocker la clé
+- la comparer
+- la mettre dans des collections
+- la sérialiser/désérialiser
+
+Donc **obligatoire** pour une clé composite.
+
+3. Pourquoi il faut override ``equals()`` et ``hashCode()`` ?
+
+- ``equals()``
+    - Par défaut, equals() compare les adresses mémoire :
+    ```java
+    UserRoleId id1 = new UserRoleId(1, 2);
+    UserRoleId id2 = new UserRoleId(1, 2);
+
+    id1.equals(id2); // false par défaut !
+    ```
+    - il faut écrire son propre ``equals()``
+    ```java
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof UserRoleId)) return false;
+        UserRoleId that = (UserRoleId) o;
+        return Objects.equals(userId, that.userId) &&
+            Objects.equals(roleId, that.roleId);
+    }
+    ```
+- ``hashCode()``
+
+    - **Règle Java** : Si deux objets sont égaux (``equals()``), ils doivent avoir le même ``hashCode()``.
+
+        - Sinon :
+            - les HashMap
+            - les HashSet
+            - les caches Hibernate
+
+            ne fonctionneront pas correctement.
+
+    - on ecris notre propre ``hashCode()``
+
+    ````java
+    @Override
+    public int hashCode() {
+        return Objects.hash(userId, roleId);
+    }
+    ````
+
+C’est **LE point le plus important**.
+
+JPA doit pouvoir comparer deux clés composites pour savoir si :
+- elles représentent la même ligne
+- elles sont identiques dans une collection
+- elles doivent être mises à jour ou fusionnées
+
+Exemple :
+
+```java
+UserRoleId(1, 2)
+UserRoleId(1, 2)
+```
+
+Ce sont **deux objets différents**, mais ils représentent **la même clé**.
+
+- Sans override :
+    - Java compare les objets par adresse mémoire : ils seraient considérés différents
+    - JPA ne pourrait pas gérer correctement les relations
+    - Les sets, maps, caches Hibernate ne fonctionneraient pas
+    - Tu aurais des bugs très difficiles à comprendre
+
+@Override : Cette méthode remplace (override) une méthode héritée d’une classe parente
+
+- Avec override :
+    - Java comprend que les deux clés sont identiques.
+
+4. Résusmé simplifié
+
+| Élément            | Pourquoi ?                                                         |
+|--------------------|--------------------------------------------------------------------|
+| `@Embeddable`      | Indique que c’est une clé composite                                |
+| `Serializable`     | Nécessaire pour JPA/Hibernate                                      |
+| `equals()`         | Compare les valeurs, pas les objets                                |
+| `hashCode()`       | Permet à Hibernate de stocker la clé dans des collections          |
+| `(userId, roleId)` | Représente la clé primaire `(user_id, role_id)`                    |
+
+## Table de liaison (qui utilise la clé composite)
+
+1. La clé composite : ``@EmbeddedId``
+
+La clé primaire de cette entité est un objet ``UserRoleId``.  
+
+Donc la clé primaire = ``(userId, roleId)``
+
+initialise toujours la clé pour éviter ``NullPointerException``
+
+```java
+@EmbeddedId
+private UserRoleId id = new UserRoleId();
+```
+
+2. Relation vers User : ``@ManyToOne`` + ``@MapsId``
+
+- @ManyToOne : Plusieurs ``UserRole`` peuvent pointer vers le même ``User``.
+- @MapsId("userId") : C’est le point clé :
+    - Le champ userId dans la clé composite correspond à cette relation :
+        - ``userId`` dans ``UserRoleId``
+        - est automatiquement rempli avec ``user.getId()``
+- @JoinColumn(name = "id_user") : Nom de la colonne FK dans la table SQL.
+
+```java
+@ManyToOne
+@MapsId("userId")
+@JoinColumn(name = "id_user")
+private User user;
+```
+
+3. Relation vers Role : même logique
+
+```java
+@ManyToOne
+@MapsId("roleId")
+@JoinColumn(name = "id_role")
+private Role role;
+```
+
+4. Ce que fait JPA quand on crée un UserRole
+
+Grâce à ``@MapsId``:
+- ``id.userId = user.getId()``
+- ``id.roleId = role.getId()``
+
+Tu n’as même pas besoin de créer toi‑même le UserRoleId.  
+Hibernate le fait automatiquement.
+
+5. Résume simple : 
+
+| Élément            | Rôle                                         |
+|--------------------|-----------------------------------------------|
+| `@EmbeddedId`      | Utilise la clé composite `(userId, roleId)`   |
+| `@ManyToOne`       | Relation vers `User` et `Role`                |
+| `@MapsId("userId")`| Lie la relation `User` à la clé composite     |
+| `@MapsId("roleId")`| Lie la relation `Role` à la clé composite     |
+| `@JoinColumn`      | Nom des colonnes de clé étrangère (FK)        |
+| `UserRole`         | Table pivot Many‑to‑Many maîtrisée            |

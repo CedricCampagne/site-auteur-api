@@ -1,5 +1,6 @@
 package com.cedric.site_auteur_api.controller;
 
+import com.cedric.site_auteur_api.dto.book.BookDto;
 import com.cedric.site_auteur_api.entity.Book;
 import com.cedric.site_auteur_api.service.BookService;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +19,7 @@ public class BookController {
 
     // GET /books → tous les livres
     @GetMapping
-    public List<Book> getAllBooks() {
+    public List<BookDto> getAllBooks() {
         return bookService.getAllBooks();
     }
 
@@ -34,10 +35,10 @@ public class BookController {
         return bookService.getBookById(id);
     }
 
-    // PUT /books/{id}  mise à jour
-    @PutMapping("/{id}")
-    public Book updateBook(@PathVariable Integer id, @RequestBody Book book) {
-        book.setIdBook(id); // s'assurer que l'ID est correct
-        return bookService.updateBook(book);
-    }
+    // // PUT /books/{id}  mise à jour
+    // @PutMapping("/{id}")
+    // public Book updateBook(@PathVariable Integer id, @RequestBody Book book) {
+    //     book.setIdBook(id); // s'assurer que l'ID est correct
+    //     return bookService.updateBook(book);
+    // }
 }

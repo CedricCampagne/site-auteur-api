@@ -1,7 +1,10 @@
 package com.cedric.site_auteur_api.service;
 
+import com.cedric.site_auteur_api.dto.book.BookDto;
 import com.cedric.site_auteur_api.entity.Book;
+import com.cedric.site_auteur_api.mapper.BookMapper;
 import com.cedric.site_auteur_api.repository.BookRepository;
+
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -16,12 +19,14 @@ public class BookService {
     }
 
     // Récupérer tous les livres
-    public List<Book> getAllBooks() {
+    public List<BookDto> getAllBooks() {
         List<Book> books = bookRepository.findAll();
         if (books.isEmpty()) {
             throw new NoSuchElementException("Aucun livre trouvé");
         }
-        return books;
+        return books.stream()
+                .map(BookMapper:: tDto)
+                .toList();
     }
 
     // Récupérer un livre par slug
@@ -39,19 +44,19 @@ public class BookService {
                 .orElseThrow(() -> new NoSuchElementException("Livre non trouvé avec l'ID : " + id));
     }
 
-    // Mettre à jour un livre
-    public Book updateBook(Book book) {
-        if (book.getIdBook() == null || !bookRepository.existsById(book.getIdBook())) {
-            throw new NoSuchElementException("Impossible de mettre à jour : livre inexistant");
-        }
-        return bookRepository.save(book);
-    }
+    // // Mettre à jour un livre
+    // public Book updateBook(Book book) {
+    //     if (book.getIdBook() == null || !bookRepository.existsById(book.getIdBook())) {
+    //         throw new NoSuchElementException("Impossible de mettre à jour : livre inexistant");
+    //     }
+    //     return bookRepository.save(book);
+    // }
 
-    // Supprimer un livre
-    public void deleteBook(Integer id) {
-        if (!bookRepository.existsById(id)) {
-            throw new NoSuchElementException("Impossible de supprimer : livre inexistant avec l'ID " + id);
-        }
-        bookRepository.deleteById(id);
-    }
+    // // Supprimer un livre
+    // public void deleteBook(Integer id) {
+    //     if (!bookRepository.existsById(id)) {
+    //         throw new NoSuchElementException("Impossible de supprimer : livre inexistant avec l'ID " + id);
+    //     }
+    //     bookRepository.deleteById(id);
+    // }
 }

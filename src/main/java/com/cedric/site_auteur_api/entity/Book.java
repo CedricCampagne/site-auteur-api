@@ -1,7 +1,10 @@
 package com.cedric.site_auteur_api.entity;
 
 import jakarta.persistence.*;
+import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 @Entity
 @Table(name = "book")
@@ -27,8 +30,9 @@ public class Book {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String excerpt;
 
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssXXX")
     @Column(name = "published_at", nullable = false)
-    private ZonedDateTime publishedAt;
+    private OffsetDateTime publishedAt;
 
     @Column(columnDefinition = "TEXT")
     private String publisher;
@@ -43,10 +47,10 @@ public class Book {
     private Boolean isActive = true;
 
     @Column(name = "created_at", nullable = false)
-    private ZonedDateTime createdAt;
+    private OffsetDateTime createdAt;
 
     @Column(name = "updated_at", nullable = false)
-    private ZonedDateTime updatedAt;
+    private OffsetDateTime updatedAt;
 
     // Getters et Setters
     // Manuellement pour cette entité
@@ -100,11 +104,11 @@ public class Book {
         this.excerpt = excerpt;
     }
 
-    public ZonedDateTime getPublishedAt() {
+    public OffsetDateTime getPublishedAt() {
         return publishedAt;
     }
 
-    public void setPublishedAt(ZonedDateTime publishedAt) {
+    public void setPublishedAt(OffsetDateTime publishedAt) {
         this.publishedAt = publishedAt;
     }
 
@@ -140,19 +144,19 @@ public class Book {
         isActive = active;
     }
 
-    public ZonedDateTime getCreatedAt() {
+    public OffsetDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(ZonedDateTime createdAt) {
+    public void setCreatedAt(OffsetDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public ZonedDateTime getUpdatedAt() {
+    public OffsetDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(ZonedDateTime updatedAt) {
+    public void setUpdatedAt(OffsetDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 
@@ -162,7 +166,7 @@ public class Book {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = updatedAt = ZonedDateTime.now();
+        createdAt = updatedAt = OffsetDateTime.now();
         if(isActive == null) {
             isActive = true;
         }
@@ -171,7 +175,7 @@ public class Book {
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = ZonedDateTime.now();
+        updatedAt = OffsetDateTime.now();
         generateSlug(); // régénère le slug si le titre change
     }
 
