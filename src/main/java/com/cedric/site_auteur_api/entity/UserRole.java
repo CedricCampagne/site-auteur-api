@@ -1,5 +1,7 @@
 package com.cedric.site_auteur_api.entity;
 
+import java.time.OffsetDateTime;
+
 import jakarta.persistence.*;
 
 import lombok.Getter;
@@ -26,5 +28,11 @@ public class UserRole {
     @MapsId("roleId")
     @JoinColumn(name = "id_role")
     private Role role;
+
+    @Column(name = "created_at", nullable = false)
+    private OffsetDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private OffsetDateTime updatedAt;
 
 }

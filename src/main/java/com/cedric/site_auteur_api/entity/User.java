@@ -1,6 +1,7 @@
 package com.cedric.site_auteur_api.entity;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.*;
@@ -44,6 +45,7 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Comment> comments;
 
-    @OneToMany(mappedBy = "user")
-    private List<UserRole> userRoles;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    //initialise la liste pour eviter null ici si pas de role par defaut c'st vide et non null
+    private List<UserRole> userRoles = new ArrayList<>();
 }

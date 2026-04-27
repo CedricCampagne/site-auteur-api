@@ -1,6 +1,7 @@
 package com.cedric.site_auteur_api.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.cedric.site_auteur_api.entity.User;
@@ -19,5 +20,13 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     boolean existsByUsername(String username);
 
     //Objet qui peut contenir : un user ou null
-     Optional<User> findByEmail(String email);
+
+    // @Query permet d’écrire une requête personnalisée pour Spring Data JPA.
+    @Query("""
+            SELECT u FROM User u
+            LEFT JOIN FETCH u.userRoles ur
+            LEFT JOIN FETCH ur.role
+            WHERE u.email = :email
+            """)
+    Optional<User> findByEmail(String email);
 }  

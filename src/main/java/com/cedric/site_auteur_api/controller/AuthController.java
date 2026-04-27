@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cedric.site_auteur_api.dto.auth.LoginDto;
 import com.cedric.site_auteur_api.dto.auth.RegisterDto;
 import com.cedric.site_auteur_api.dto.user.UserFullDto;
 import com.cedric.site_auteur_api.service.UserService;
@@ -23,4 +24,10 @@ public class AuthController {
     public UserFullDto register (@RequestBody RegisterDto dto) {
         return userService.register(dto);
     }
+
+    @PostMapping("/login")
+    public UserFullDto login(@RequestBody LoginDto dto) {
+        return userService.login(dto);
+    }
+    
 }

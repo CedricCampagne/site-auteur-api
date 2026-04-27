@@ -31,6 +31,14 @@ public class UserRoleId implements Serializable {
         return roleId;
     }
 
+    //Setters
+    public void setUserId(Integer userId) {
+        this.userId = userId;
+    }
+
+    public void setRoleId(Integer roleId) {
+        this.roleId = roleId;
+    }
     // "2 clés sont identiques si userId + roleId sont identiques"
     // voir notes
     @Override

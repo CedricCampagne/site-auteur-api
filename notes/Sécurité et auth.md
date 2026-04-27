@@ -83,24 +83,73 @@ Permet de vérifier si l’email est déjà utilisé.
 
 4. PasswordEncoder (obligatoire pour hasher)
 
-Dans config/SecurityConfig.java :
+- Dans config/SecurityConfig.java :
 
-```java
-@Configuration
-public class SecurityConfig {
+    ```java
+    @Configuration
+    public class SecurityConfig {
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+            return new BCryptPasswordEncoder();
+        }
     }
-}
-```
+    ```
 
-bean a injecter via constructeur dans le service.
+    bean a injecter via constructeur dans le service.
 
-```java
-private final PasswordEncoder passwordEncoder;
-```
+    ```java
+    private final PasswordEncoder passwordEncoder;
+    ```
+- Config minimale pour pas avoir 401 lors des test :
+
+    - Le ``SecurityFilterChain`` (le cœur de la config)
+        Spring Security 6 (Spring Boot 3) utilise ``SecurityFilterChain`` pour définir les règles de sécurité.
+
+        ```java
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+            ....
+        }
+        ```
+
+        - ``HttpSecurity`` est l’objet principal que Spring Security te donne pour configurer :
+            - les routes sont publiques
+            - quelles routes sont protégées
+            - comment gérer l’authentification
+            - comment gérer les filtres (comme le JWT)
+            - comment gérer CSRF, CORS, sessions, etc.
+
+            On peut le voir comme le “pare‑feu” de l'API.
+
+            C’est lui qui décide :“Cette route est libre, celle‑ci demande un token, celle‑ci demande un rôle admin…”
+
+    - Désactiver CSRF (protection contre les attaques sur les formulaires HTML) pour les API
+        - CSRF est utile pour les formulaires HTML.
+        - Pour une API REST (Postman, React, mobile), on le désactive.
+        - Sinon, POST/PUT/DELETE seraient bloqués.
+
+    - Définir les routes publiques et protégées
+        - ``requestMatchers("/auth/register").permitAll()``
+            - Cette route est publique
+            - Pas besoin de token
+            - Tu peux tester depuis Postman
+        - ``anyRequest().authenticated()``
+            _ Toutes les autres routes nécessitent une authentification
+            - Comme pas encore mis le JWT → elles renvoient 401 (normal, prévu)
+
+    ```java
+    .authorizeHttpRequests(auth -> auth
+        .requestMatchers("/auth/register").permitAll() // PUBLIC
+        .anyRequest().authenticated() // tout le reste protégé
+    );
+    ```
+
+    - Retourner la config
+
+    ```java
+    return http.build();
+    ```
 
 5. REGISTER dans UserService
 
@@ -153,44 +202,7 @@ public class AuthController {
     4. Sauvegarder
     5. Retourner UserFullDto
 
-## Étape 2 : LOGIN
+## Étape 2 : LOGIN sans token 
 
-1. Objectif du login
 
-- Vérifier email + password
-- Si OK → générer un JWT
-- Retourner { token, user }
-- Le front stocke le token (localStorage)
-- Le token sera utilisé pour accéder aux routes protégées
-
-2. DTO nécessaires
-
-- LoginDto
-
-```java
-public record LoginDto(
-    String email,
-    String password
-) {}
-```
-
-- AuthResponseDto
-
-```java
-public record AuthResponseDto(
-    String token,
-    UserFullDto user
-) {}
-```
-
-3. Méthodes nécessaires dans UserRepository
-
-```java
-Optional<User> findByEmail(String email);
-```
-
-- Optional = peut contenir un User ou être vide.
-- évite les null dangereux.
-
-4. Étapes du LOGIN dans UserService
 
