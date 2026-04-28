@@ -8,7 +8,6 @@ import com.cedric.site_auteur_api.repository.ChronicleRepository;
 import com.cedric.site_auteur_api.repository.CommentRepository;
 import com.cedric.site_auteur_api.repository.UserRepository;
 import com.cedric.site_auteur_api.dto.Comment.CommentCreateDto;
-import com.cedric.site_auteur_api.dto.Comment.CommentDto;
 import com.cedric.site_auteur_api.dto.Comment.CommentFullDto;
 import com.cedric.site_auteur_api.dto.Comment.CommentUpdateDto;
 

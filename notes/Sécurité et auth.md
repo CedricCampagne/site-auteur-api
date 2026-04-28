@@ -202,7 +202,87 @@ public class AuthController {
     4. Sauvegarder
     5. Retourner UserFullDto
 
-## Étape 2 : LOGIN sans token 
+## Étape 2 : LOGIN avec token
 
+1. Ajouter la lib JWT dans ton projet :
+
+```java
+    <dependency>
+        <groupId>io.jsonwebtoken</groupId>
+        <artifactId>jjwt-api</artifactId>
+        <version>0.11.5</version>
+    </dependency>
+    <dependency>
+        <groupId>io.jsonwebtoken</groupId>
+        <artifactId>jjwt-impl</artifactId>
+        <version>0.11.5</version>
+        <scope>runtime</scope>
+    </dependency>
+    <dependency>
+        <groupId>io.jsonwebtoken</groupId>
+        <artifactId>jjwt-jackson</artifactId>
+        <version>0.11.5</version>
+        <scope>runtime</scope>
+    </dependency>
+```
+
+2. Définir une clé secrète dans la config
+
+Dans application.yaml et les données dans le ``.env``
+
+```java
+jwt:
+    secret: ${JWT_Secret}
+    expiration: ${JWT_EXPIRATION}
+```
+
+3. Créer le service JWT (JwtService)
+
+- Concept :  
+    On crée une classe qui sait générer un token à partir d’un User ( dans security/JwtService.java)
+
+```java
+    @Service
+public class JwtService {
+
+    @Value("${jwt.secret}")
+    private String secret;
+
+    @Value("${jwt.expiration}")
+    private long expirationMs;
+
+    // méthode qui générera le token (on la remplira après)
+    public String generateToken(User user) {
+        return null; // temporaire
+    }
+}
+```
+
+On vérifie que l'application démarre
+
+4. Ajouter la logique de génération du token
+
+    Voir notes Token.md
+
+## Valider un token recu
+
+```java
+public boolean validateToken(String token) {
+    try {
+        // 1. Parse le token et vérifie la signature
+        Jwts.parserBuilder()
+            .setSigningKey(Keys.hmacShaKeyFor(secret.getBytes()))
+            .build()
+            .parseClaimsJws(token);
+
+        return true; // si aucune exception → token valide
+
+    } catch (Exception e) {
+        return false; // signature invalide, expiré, mal formé, etc.
+    }
+}
+```
+
+## Le rôle du ``JwtAuthenticationFilter``
 
 

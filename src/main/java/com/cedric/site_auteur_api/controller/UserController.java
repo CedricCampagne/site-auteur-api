@@ -1,7 +1,6 @@
 package com.cedric.site_auteur_api.controller;
 
 import com.cedric.site_auteur_api.dto.user.UserCreateDto;
-import com.cedric.site_auteur_api.dto.user.UserDto;
 import com.cedric.site_auteur_api.dto.user.UserFullDto;
 import com.cedric.site_auteur_api.dto.user.UserUpdateDto;
 import com.cedric.site_auteur_api.service.UserService;

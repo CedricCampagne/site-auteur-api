@@ -4,7 +4,6 @@ import com.cedric.site_auteur_api.entity.User;
 import com.cedric.site_auteur_api.dto.role.RoleDto;
 import com.cedric.site_auteur_api.dto.user.UserDto;
 import com.cedric.site_auteur_api.dto.user.UserFullDto;
-import com.cedric.site_auteur_api.mapper.RoleMapper;
 
 import java.util.List;
 public class UserMapper {

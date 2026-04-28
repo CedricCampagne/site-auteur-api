@@ -3,6 +3,7 @@ package com.cedric.site_auteur_api.service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.cedric.site_auteur_api.dto.auth.AuthResponse;
 import com.cedric.site_auteur_api.dto.auth.LoginDto;
 import com.cedric.site_auteur_api.dto.auth.RegisterDto;
 import com.cedric.site_auteur_api.dto.user.UserCreateDto;
@@ -16,6 +17,7 @@ import com.cedric.site_auteur_api.mapper.UserMapper;
 import com.cedric.site_auteur_api.repository.RoleRepository;
 import com.cedric.site_auteur_api.repository.UserRepository;
 import com.cedric.site_auteur_api.repository.UserRoleRepository;
+import com.cedric.site_auteur_api.security.JwtService;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -23,7 +25,8 @@ import java.util.NoSuchElementException;
 
 @Service
 public class UserService {
-    
+    //injecte les services
+    private final JwtService jwtService;
     //injecte les repository
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
@@ -35,11 +38,13 @@ public class UserService {
         UserRepository userRepository,
         PasswordEncoder passwordEncoder,
         RoleRepository roleRepository,
-        UserRoleRepository userRoleRepository) {
+        UserRoleRepository userRoleRepository,
+        JwtService jwtService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.roleRepository = roleRepository;
         this.userRoleRepository = userRoleRepository;
+        this.jwtService = jwtService;
     }
 
     //All
@@ -155,7 +160,7 @@ public class UserService {
 
     // Login
 
-    public UserFullDto login( LoginDto dto ) {
+    public AuthResponse login( LoginDto dto ) {
         // Cherche le user avec le email d'entrée
         User user = userRepository.findByEmail(dto.email())
            .orElseThrow(()-> new RuntimeException("Email incorrecte"));
@@ -165,6 +170,12 @@ public class UserService {
             throw new RuntimeException("Mot de passe incorrecte");
         }
 
-        return UserMapper.toFullDto(user);
+        // Génère le token
+        String token = jwtService.generateToken(user);
+
+        return new AuthResponse(
+            token,
+            UserMapper.toFullDto(user)
+        );
     }
 }

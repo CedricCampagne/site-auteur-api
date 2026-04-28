@@ -2,7 +2,6 @@ package com.cedric.site_auteur_api.entity;
 
 import jakarta.persistence.*;
 import java.time.OffsetDateTime;
-import java.time.ZonedDateTime;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
