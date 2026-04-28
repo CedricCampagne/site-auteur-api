@@ -112,15 +112,36 @@ On renvoi plus un UserFullDto mais un autre DTO AutResponse
     ) {}
 ```
 
-🟦 9) Ce qu’il reste à faire après
-Ajouter un filter JWT
+9. Ajouter un filter JWT
 
-Ajouter une SecurityConfig
+Voir ficiher Sécurité et auth.md
 
-Protéger les routes :
+10. Résumé ultra court
 
-/auth/** → public
+Le token contient seulement l’email : identifiant minimal.
 
-/admin/** → admin
+Le filtre JWT recharge le User complet depuis la base.
 
-/user/** → user
+UsernamePasswordAuthenticationToken contient ce User complet.
+
+Spring Security utilise ce User complet dans tout le reste de la requête.
+
+- Le token n’a pas besoin de contenir toutes les infos du user.
+- Le SecurityContext, lui, contient le user complet.
+
+
+11. versoin avc dto front
+
+Token = juste email (subject)
+- sert à identifier l’utilisateur
+
+Backend = recharge le User complet depuis la base
+- infos toujours à jour
+- sécurité maximale
+
+Front = reçoit un DTO complet
+- affiche les infos
+- n’a pas besoin de décoder le token
+
+SecurityContext = contient le User complet
+- Spring Security gère les rôles et l’accès aux routes

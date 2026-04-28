@@ -24,9 +24,8 @@ public class JwtService {
         Date expiry = new Date(now.getTime() + expiration);
 
         return Jwts.builder()
-            .setSubject(user.getEmail())    // identifiant principal
-            .claim("id", user.getIdUser())  // infos custom
-            .claim("roles", user.getUserRoles()
+            .setSubject(user.getEmail())                    // identifiant principal
+            .claim("roles", user.getUserRoles()             // infos custom .claim
                 .stream()
                 .map(ur -> ur.getRole().getRoleName())
                 .toList())

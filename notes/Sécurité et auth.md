@@ -283,6 +283,201 @@ public boolean validateToken(String token) {
 }
 ```
 
-## Le rôle du ``JwtAuthenticationFilter``
+## Le ``JwtAuthenticationFilter``
+
+1. Rôle
+
+- lire le header Authorization
+- extraire le token Bearer ...
+- demander à JwtService :
+    - si le token est valide
+    - quel email il contient
+- charger l’utilisateur depuis la base
+- créer un Authentication
+- le mettre dans le SecurityContext
 
 
+Et ensuite laisser la requête continuer.  
+On va utiliser OncePerRequestFilter (Spring Security) pour être sûr qu’il s’exécute une seule fois par requête.
+
+2. extends ``OncePerRequestFilter``
+
+Spring Security donne plusieurs types de filtres possibles.  
+``OncePerRequestFilter`` est le bon choix pour un filtre JWT, car il garantit une chose essentielle :  
+Le filtre ne s’exécute qu’une seule fois par requête HTTP.  
+
+Obligation d'implémenter ``doFilterInternal()`` méthode qui contient toute la logique du filtre :
+- lire le header Authorization
+- extraire le token
+- valider le token
+- extraire l’email
+- charger l’utilisateur
+- créer l’Authentication
+- remplir le SecurityContext
+- laisser la requête continuer
+
+
+``OncePerRequestFilter`` est conçu pour s'intègrer dans le pipeline  Spring Security
+
+```bash
+[Filtre A] → [Filtre B] → [Ton filtre JWT] → [Filtre C] → [Controller]
+```
+
+3. Résumé ultra simple
+
+extends OncePerRequestFilter : 
+- garantit que le filtre s’exécute une seule fois par requête
+- impose d’implémenter doFilterInternal()
+- idéal pour lire/valider un token JWT
+- évite les doublons et s’intègre parfaitement dans Spring Security
+
+3. ``doFilterInternal()``
+
+hérite de OncePerRequestFilter, et cette classe impose une seule méthode à implémenter :
+
+```java
+protected void doFilterInternal(HttpServletRequest request,
+                                HttpServletResponse response,
+                                FilterChain filterChain)
+
+```
+
+C’est le point d’entrée du filtre.  
+Spring Security l’appelle une fois par requête HTTP.
+
+``doFilterInternal()`` c'est lui qui fait tout :
+- lire le header Authorization
+- extraire le token
+- valider le token
+- extraire l’email
+- charger l’utilisateur
+- créer un Authentication
+- le mettre dans le SecurityContext
+- laisser la requête continuer
+
+Sans cette méthode → ton JWT ne sert à rien.
+
+### Les paramètres
+
+- ``HttpServletRequest request`` : 
+Contient :
+- les headers (dont ``Authorization``)
+- l’URL
+- les paramètres
+- le body
+
+C’est ici que tu lis le token.
+
+- ``HttpServletResponse response`` : 
+Contient :
+- les headers de réponse
+- le statut HTTP
+- le body de réponse
+
+On ne l’utilise presque jamais dans un filtre JWT, mais il doit être là.
+
+- ``FilterChain filterChain``
+C’est la chaîne de filtres de Spring Security.  
+
+Le filtre doit toujours appeler :
+
+````java
+filterChain.doFilter(request, response);
+````
+
+Sinon la requête n’arrive jamais au contrôleur.
+
+- Pourquoi ``throws ServletException, IOException``
+    - ``IOException`` : erreurs d’entrée/sortie (lecture header, réseau…)
+    - ``ServletException`` : erreurs dans la chaîne de filtres ou le serveur
+
+    Ces exceptions sont normales dans un filtre.
+    Spring Security sait les gérer : on les laisse remonter.
+
+- Les 10 étapes internes de ``doFilterInternal()`` : 
+    - Lire le header Authorization
+    - Si pas de token → laisser passer
+    - Extraire le token après “Bearer ”
+    - Valider le token
+    - Extraire l’email
+    - Vérifier que personne n’est déjà authentifié
+    - Charger l’utilisateur depuis la base
+    - Construire les rôles (``SimpleGrantedAuthority``)
+    - Créer un ``UsernamePasswordAuthenticationToken``
+    - Mettre l’authentification dans le ``SecurityContext``
+    - Continuer la chaîne (``filterChain.doFilter()``)
+
+- Résumé ultra-court : 
+    doFilterInternal() = cœur du filtre JWT
+    - appelé une fois par requête
+    - lit le header Authorization
+    - extrait et valide le token
+    - récupère l’email
+    - charge l’utilisateur
+    - crée Authentication
+    - remplit SecurityContext
+    - laisse la requête continuer
+
+4. ``SecurityContext``
+
+C’est l’endroit où Spring Security stocke l’utilisateur actuellement authentifié.
+
+Il contient :
+- l’objet ``Authentication`` qui contient :
+    - le principal (le ``User``)
+    - les rôles (authorities)
+    - l’état “authentifié”
+
+Sans ``SecurityContext``, Spring ne sait pas :
+- qui est connecté
+- quels rôles il a
+- s’il peut accéder à une route protégée
+
+Il est géré automatiquement par Spring Security.
+
+À chaque requête :
+- Spring crée un ``SecurityContext`` vide
+- Ton JwtAuthenticationFilter peut y mettre un ``Authentication``
+- Les autres filtres et contrôleurs peuvent le lire
+- À la fin de la requête, Spring le nettoie
+
+Donc il vit uniquement pendant la requête HTTP.
+
+Il est stocké dans une classe utilitaire statique : ``SecurityContextHolder``
+
+on y accède via
+
+````java
+SecurityContextHolder.getContext()
+````
+
+- Résumé ultra court : 
+- SecurityContext = stockage de l’utilisateur authentifié pour la requête en cours.
+- SecurityContextHolder = accès global au SecurityContext.
+- getAuthentication() = renvoie l’utilisateur actuel (ou null si personne).
+- On vérifie getAuthentication() == null pour éviter d’écraser une authentification existante.
+- setAuthentication() = on dit à Spring “cet utilisateur est connecté”.
+
+## Mise a jour ``SecurityConfig.java``
+
+1. ``SessionCreationPolicy.STATELESS``
+
+````java
+.sessionManagement(session -> 
+    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+)
+````
+
+On dit à Spring :
+- Ne crée jamais de session serveur.
+- L’utilisateur doit être authentifié à chaque requête via le token.”
+
+C’est **obligatoire** pour une API JWT.
+
+2. Ajouter le filtre JWT
+
+````java
+.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+````
+
+On veut lire le token avant que Spring décide si la requête est authentifiée.
