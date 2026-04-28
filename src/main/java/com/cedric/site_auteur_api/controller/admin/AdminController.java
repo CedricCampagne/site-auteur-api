@@ -1,4 +1,4 @@
-package com.cedric.site_auteur_api.controller;
+package com.cedric.site_auteur_api.controller.admin;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
