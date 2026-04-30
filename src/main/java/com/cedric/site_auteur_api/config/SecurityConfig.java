@@ -33,32 +33,30 @@ public class SecurityConfig {
             // désactiver CSRF (API REST)
             .csrf(csrf -> csrf.disable())
 
-            // Pas de session : JWT = stateless
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
             // définir les routes publiques et privées
-
             .authorizeHttpRequests(auth -> auth
                 // défini la route et .permitAll() pour une route publique
-                // Auth public
-                .requestMatchers("/auth/register").permitAll()
-                .requestMatchers("/auth/login").permitAll()
-
-                // Books
-                .requestMatchers("/books/**").permitAll()
-
-                // Users
-                .requestMatchers("/users/**").permitAll()
-
-                //route protégée .authenticated()                
-                .requestMatchers("/chroniques/{id}").authenticated()
+                // --- PUBLIC ---
+                .requestMatchers(
+                    "/auth/register",
+                    "/auth/login",
+                    "/chronicles",
+                    "/books/**"
+                ).permitAll()
+        
+                //route protégée user authetifié .authenticated()                
+                .requestMatchers("/chronicles/{id}").authenticated()
 
                 // Privé : admin uniquement
+                // --- ADMIN ---
                 .requestMatchers("/admin/**").hasRole("ADMIN")          // !! hasRole("ADMIN") : cherche "ROLE_ADMIN" mettre en maj si pas le cas en bdd
 
                 // Tous le reste protégé
                 .anyRequest().authenticated()
+        )
+        // Pas de session : JWT = stateless
+        .sessionManagement(session ->
+            session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         )
 
         // Ajout du filtre JWT juste avant le filtre standard de Spring

@@ -144,4 +144,13 @@ public class ChronicleService {
 
         return ChronicleMapper.toDto(saved);
     }
+
+    // DELETE
+    public void deleteChronicle(Integer id) {
+        if (!chronicleRepository.existsById(id)) {
+            throw new NoSuchElementException("Chronique non trouvée avec l'id : " + id);
+        }
+        chronicleRepository.deleteById(id);
+    }
+    
 }

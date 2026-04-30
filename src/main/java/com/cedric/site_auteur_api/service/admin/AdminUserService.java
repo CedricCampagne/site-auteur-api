@@ -1,4 +1,4 @@
-package com.cedric.site_auteur_api.service;
+package com.cedric.site_auteur_api.service.admin;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -7,7 +7,6 @@ import com.cedric.site_auteur_api.entity.User;
 import com.cedric.site_auteur_api.dto.user.AdminUserUpdateDto;
 import com.cedric.site_auteur_api.dto.user.AdminUserCreateDto;
 import com.cedric.site_auteur_api.dto.user.UserFullDto;
-import com.cedric.site_auteur_api.dto.user.UserUpdateDto;
 import com.cedric.site_auteur_api.mapper.UserMapper;
 import com.cedric.site_auteur_api.repository.UserRepository;
 
@@ -34,6 +33,14 @@ public class AdminUserService {
             .toList();
     }
 
+    // by id
+    public UserFullDto getUserById(Integer id) {
+        User user = userRepository.findById(id)
+            .orElseThrow(()-> new NoSuchElementException("Utilisateur non trouvable avecl 'id : " + id));
+
+        return UserMapper.toFullDto(user);
+    }
+    
     //Update
     public UserFullDto updateUser(Integer id,AdminUserUpdateDto dto) {
         User user = userRepository.findById(id)

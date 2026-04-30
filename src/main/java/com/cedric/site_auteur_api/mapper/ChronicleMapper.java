@@ -1,5 +1,6 @@
 package com.cedric.site_auteur_api.mapper;
 
+import com.cedric.site_auteur_api.dto.chronicle.AdminChronicleDto;
 import com.cedric.site_auteur_api.dto.chronicle.ChronicleDto;
 import com.cedric.site_auteur_api.entity.Chronicle;
 
@@ -16,6 +17,22 @@ public class ChronicleMapper {
             chronicle.getCoverUrl(),
             chronicle.getPublishedAt(),
             chronicle.getIsActive()
+        );
+    }
+
+    public static AdminChronicleDto toAdminDto(Chronicle c) {
+        return new AdminChronicleDto(
+            c.getIdChronicle(),
+            c.getTitle(),
+            c.getSlug(),
+            c.getQuote(),
+            c.getSummary(),
+            c.getContent(),
+            c.getCoverUrl(),
+            c.getPublishedAt(),
+            c.getIsActive(),
+            c.getCreatedAt(),
+            c.getUpdatedAt()
         );
     }
 }

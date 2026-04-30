@@ -1,5 +1,6 @@
 package com.cedric.site_auteur_api.mapper;
 
+import com.cedric.site_auteur_api.dto.Comment.AdminCommentDto;
 import com.cedric.site_auteur_api.dto.Comment.CommentDto;
 import com.cedric.site_auteur_api.dto.Comment.CommentFullDto;
 import com.cedric.site_auteur_api.dto.chronicle.ChronicleCommentDto;
@@ -31,4 +32,23 @@ public class CommentMapper {
             )
         );
     }
+
+    public static AdminCommentDto toAdminDto(Comment c) {
+    return new AdminCommentDto(
+        c.getIdComment(),
+        c.getContent(),
+        c.getIsVisible(),
+        c.getCreatedAt(),
+        c.getUpdatedAt(),
+        new UserCommentDto(
+            c.getUser().getIdUser(),
+            c.getUser().getUsername()
+        ),
+        new ChronicleCommentDto(
+            c.getChronicle().getIdChronicle(),
+            c.getChronicle().getTitle()
+        )
+    );
+}
+
 }

@@ -5,6 +5,5 @@ public record CommentDto (
     Integer idComment,
     String content,
     Boolean isVisible
-
 ) {}
 

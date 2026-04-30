@@ -6,8 +6,6 @@ import org.springframework.stereotype.Service;
 import com.cedric.site_auteur_api.dto.auth.AuthResponse;
 import com.cedric.site_auteur_api.dto.auth.LoginDto;
 import com.cedric.site_auteur_api.dto.auth.RegisterDto;
-import com.cedric.site_auteur_api.dto.user.AdminUserCreateDto;
-import com.cedric.site_auteur_api.dto.user.UserUpdateDto;
 import com.cedric.site_auteur_api.dto.user.UserFullDto;
 
 import com.cedric.site_auteur_api.entity.User;
@@ -20,7 +18,6 @@ import com.cedric.site_auteur_api.repository.UserRoleRepository;
 import com.cedric.site_auteur_api.security.JwtService;
 
 import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service

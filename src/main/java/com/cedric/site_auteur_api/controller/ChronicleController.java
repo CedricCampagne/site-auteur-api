@@ -3,12 +3,14 @@ package com.cedric.site_auteur_api.controller;
 import com.cedric.site_auteur_api.dto.chronicle.ChronicleCreateDto;
 import com.cedric.site_auteur_api.dto.chronicle.ChronicleDto;
 import com.cedric.site_auteur_api.dto.chronicle.ChronicleUpdateDto;
+
 import com.cedric.site_auteur_api.service.ChronicleService;
+
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/chronicles")

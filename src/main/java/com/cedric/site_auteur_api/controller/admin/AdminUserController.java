@@ -2,7 +2,8 @@ package com.cedric.site_auteur_api.controller.admin;
 
 import com.cedric.site_auteur_api.dto.user.AdminUserUpdateDto;
 import com.cedric.site_auteur_api.dto.user.UserFullDto;
-import com.cedric.site_auteur_api.service.AdminUserService;
+
+import com.cedric.site_auteur_api.service.admin.AdminUserService;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,6 +30,11 @@ public class AdminUserController {
         return adminUserService.getAllUsers();
     }
     
+    @GetMapping("/{id}")
+    public UserFullDto getUserById(@PathVariable Integer id) {
+        return adminUserService.getUserById(id);
+    }
+
     @PatchMapping("/{id}")
     public UserFullDto updateUser(
         @PathVariable Integer id,

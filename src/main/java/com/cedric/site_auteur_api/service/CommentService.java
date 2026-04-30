@@ -9,7 +9,6 @@ import com.cedric.site_auteur_api.repository.CommentRepository;
 import com.cedric.site_auteur_api.repository.UserRepository;
 import com.cedric.site_auteur_api.dto.Comment.CommentCreateDto;
 import com.cedric.site_auteur_api.dto.Comment.CommentFullDto;
-import com.cedric.site_auteur_api.dto.Comment.CommentUpdateDto;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -61,14 +60,6 @@ public class CommentService {
             .toList();
     }
 
-    //delete
-    public void deleteCommentbyId( Integer id ) {
-        Comment comment = commentRepository.findById(id)
-            .orElseThrow(()-> new NoSuchElementException("Commentaire introuvable avec l 'id : " + id));
-    
-            commentRepository.delete(comment);
-    }
-
     //create
     public CommentFullDto createComment( CommentCreateDto dto ) {
 
@@ -91,32 +82,5 @@ public class CommentService {
         Comment saved = commentRepository.save(comment);
 
         return CommentMapper.toFullDto(saved);
-    }
-
-    //update
-    public CommentFullDto updateComment( Integer id, CommentUpdateDto dto ) {
-        Comment comment = commentRepository.findById(id)
-            .orElseThrow(()-> new NoSuchElementException("Commentaire introuvable avec l'id : " + id));
-
-        comment.setContent(dto.content());
-        comment.setIsVisible(dto.isVisble());
-        comment.setUpdatedAt(OffsetDateTime.now());
-
-        Comment updated = commentRepository.save(comment);
-
-        return CommentMapper.toFullDto(updated);
-    }
-
-    //toggle de status
-    public CommentFullDto toggleCommentStatus(Integer id) {
-        Comment comment = commentRepository.findById(id)
-            .orElseThrow(()-> new NoSuchElementException("Commentaire introuvable avecl 'id : " + id));
-
-        comment.setIsVisible(!comment.getIsVisible());
-        comment.setUpdatedAt(OffsetDateTime.now());
-
-        Comment updated = commentRepository.save(comment);
-
-        return CommentMapper.toFullDto(updated);
     }
 }
