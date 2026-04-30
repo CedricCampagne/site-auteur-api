@@ -2,6 +2,7 @@ package com.cedric.site_auteur_api.mapper;
 
 import com.cedric.site_auteur_api.dto.chronicle.AdminChronicleDto;
 import com.cedric.site_auteur_api.dto.chronicle.ChronicleDto;
+import com.cedric.site_auteur_api.dto.chronicle.ChronicleListDto;
 import com.cedric.site_auteur_api.entity.Chronicle;
 
 public class ChronicleMapper {
@@ -33,6 +34,16 @@ public class ChronicleMapper {
             c.getIsActive(),
             c.getCreatedAt(),
             c.getUpdatedAt()
+        );
+    }
+
+    public static ChronicleListDto toListDto(Chronicle c) {
+        return new ChronicleListDto(
+            c.getIdChronicle(),
+            c.getTitle(),
+            c.getCoverUrl(),
+            c.getPublishedAt(),
+            c.getSummary()
         );
     }
 }

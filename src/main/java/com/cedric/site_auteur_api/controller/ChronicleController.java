@@ -1,8 +1,11 @@
 package com.cedric.site_auteur_api.controller;
 
+import com.cedric.site_auteur_api.dto.PageResponse;
 import com.cedric.site_auteur_api.dto.chronicle.ChronicleCreateDto;
 import com.cedric.site_auteur_api.dto.chronicle.ChronicleDto;
 import com.cedric.site_auteur_api.dto.chronicle.ChronicleUpdateDto;
+import com.cedric.site_auteur_api.dto.chronicle.ChronicleListDto;
+
 
 import com.cedric.site_auteur_api.service.ChronicleService;
 
@@ -24,8 +27,11 @@ public class ChronicleController {
     }
 
     @GetMapping
-    public List<ChronicleDto> getAllChronicles() {
-        return chronicleService.getAllChronicles();
+    public PageResponse<ChronicleListDto> getChronicles(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size
+    ) {
+        return chronicleService.getChronicles(page, size);
     }
     
     @GetMapping("/slug/{slug}")

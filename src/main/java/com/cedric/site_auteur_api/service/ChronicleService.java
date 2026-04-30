@@ -4,14 +4,23 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.cedric.site_auteur_api.mapper.ChronicleMapper;
+import com.cedric.site_auteur_api.dto.PageResponse;
+
 import com.cedric.site_auteur_api.dto.chronicle.ChronicleCreateDto;
 import com.cedric.site_auteur_api.dto.chronicle.ChronicleDto;
 import com.cedric.site_auteur_api.dto.chronicle.ChronicleUpdateDto;
+import com.cedric.site_auteur_api.dto.chronicle.ChronicleListDto;
 import com.cedric.site_auteur_api.entity.Chronicle;
+
 import com.cedric.site_auteur_api.repository.ChronicleRepository;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 @Service
 public class ChronicleService {
@@ -37,9 +46,45 @@ public class ChronicleService {
             .stream()
             .map(ChronicleMapper::toDto)
             .toList();
-
+    
     }
+    // all avec pagination 
+    public PageResponse<ChronicleListDto> getChronicles(int page, int size){
+        // 1 créer l'objet Pageable
+        Pageable pageable = PageRequest.of(
+            page,
+            size,
+            Sort.by("createdAt").descending()
+        );
 
+        // 2 Appeler le repository pour récupérer une page d'entités Chronicle
+        // Spring renvoie un objet Page<Chronicle> contenant :
+        // - les entités de la page
+        // - le total d'éléments
+        // - le nombre total de pages
+        // - les infos de navigation (hasNext, hasPrevious)
+        Page<Chronicle> pageResult = chronicleRepository.findAll(pageable);
+
+        // 3 Mapper les entités Chronicle => ChronicleListDto
+        List<ChronicleListDto> items = pageResult.getContent()
+            .stream()
+            .map(ChronicleMapper::toListDto)
+            .toList();
+
+        // 4 Construire et retourner la réponse paginée
+        // On remplit le DTO générique PageResponse<T> avec :
+        // - les items mappés
+        // - les infos de pagination fournies par Spring
+        return new PageResponse<>(
+            items,
+            pageResult.getNumber(),
+            pageResult.getSize(),
+            pageResult.getTotalElements(),
+            pageResult.getTotalPages(),
+            pageResult.hasNext(),
+            pageResult.hasPrevious()
+        );
+    }
     //By slug
     public ChronicleDto getChronicleBySlug(String slug) {
         Chronicle chronicle = chronicleRepository.findBySlug(slug);
